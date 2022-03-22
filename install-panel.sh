@@ -49,40 +49,40 @@ fi
 GITHUB_SOURCE="master"
 SCRIPT_RELEASE="canary"
 
-FQDN=""
+FQDN=$1
 
 # Default MySQL credentials
 MYSQL_DB="pterodactyl"
 MYSQL_USER="pterodactyl"
-MYSQL_PASSWORD=""
+MYSQL_PASSWORD=$6
 
 # Environment
-email=""
+email=$4
 
 # Initial admin account
-user_email=""
-user_username=""
-user_firstname=""
-user_lastname=""
-user_password=""
+user_email=$4
+user_username=$5
+user_firstname=$2
+user_lastname=$3
+user_password=$6
 
 # Assume SSL, will fetch different config if true
-SSL_AVAILABLE=false
-ASSUME_SSL=false
-CONFIGURE_LETSENCRYPT=false
+SSL_AVAILABLE=true
+ASSUME_SSL=true
+CONFIGURE_LETSENCRYPT=true
 
 # download URLs
 PANEL_DL_URL="https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz"
 GITHUB_BASE_URL="https://raw.githubusercontent.com/vilhelmprytz/pterodactyl-installer/$GITHUB_SOURCE"
 
 # ufw firewall
-CONFIGURE_UFW=false
+CONFIGURE_UFW=true
 
 # firewall_cmd
-CONFIGURE_FIREWALL_CMD=false
+CONFIGURE_FIREWALL_CMD=true
 
 # firewall status
-CONFIGURE_FIREWALL=false
+CONFIGURE_FIREWALL=true
 
 # input validation regex's
 email_regex="^(([A-Za-z0-9]+((\.|\-|\_|\+)?[A-Za-z0-9]?)*[A-Za-z0-9]+)|[A-Za-z0-9]+)@(([A-Za-z0-9]+)+((\.|\-|\_)?([A-Za-z0-9]+)+)*)+\.([A-Za-z]{2,})+$"
@@ -149,131 +149,131 @@ hyperlink() {
 }
 
 ##### User input functions ######
-
-required_input() {
-  local __resultvar=$1
-  local result=''
-
-  while [ -z "$result" ]; do
-    echo -n "* ${2}"
-    read -r result
-
-    if [ -z "${3}" ]; then
-      [ -z "$result" ] && result="${4}"
-    else
-      [ -z "$result" ] && print_error "${3}"
-    fi
-  done
-
-  eval "$__resultvar="'$result'""
-}
-
-email_input() {
-  local __resultvar=$1
-  local result=''
-
-  while ! valid_email "$result"; do
-    echo -n "* ${2}"
-    read -r result
-
-    valid_email "$result" || print_error "${3}"
-  done
-
-  eval "$__resultvar="'$result'""
-}
-
-password_input() {
-  local __resultvar=$1
-  local result=''
-  local default="$4"
-
-  while [ -z "$result" ]; do
-    echo -n "* ${2}"
-
-    # modified from https://stackoverflow.com/a/22940001
-    while IFS= read -r -s -n1 char; do
-      [[ -z $char ]] && {
-        printf '\n'
-        break
-      }                               # ENTER pressed; output \n and break.
-      if [[ $char == $'\x7f' ]]; then # backspace was pressed
-        # Only if variable is not empty
-        if [ -n "$result" ]; then
-          # Remove last char from output variable.
-          [[ -n $result ]] && result=${result%?}
-          # Erase '*' to the left.
-          printf '\b \b'
-        fi
-      else
-        # Add typed char to output variable.
-        result+=$char
-        # Print '*' in its stead.
-        printf '*'
-      fi
-    done
-    [ -z "$result" ] && [ -n "$default" ] && result="$default"
-    [ -z "$result" ] && print_error "${3}"
-  done
-
-  eval "$__resultvar="'$result'""
-}
-
-ask_letsencrypt() {
-  if [ "$CONFIGURE_UFW" == false ] && [ "$CONFIGURE_FIREWALL_CMD" == false ]; then
-    print_warning "Let's Encrypt requires port 80/443 to be opened! You have opted out of the automatic firewall configuration; use this at your own risk (if port 80/443 is closed, the script will fail)!"
-  fi
-
-  echo -e -n "* Do you want to automatically configure HTTPS using Let's Encrypt? (y/N): "
-  read -r CONFIRM_SSL
-
-  if [[ "$CONFIRM_SSL" =~ [Yy] ]]; then
-    CONFIGURE_LETSENCRYPT=true
-    ASSUME_SSL=false
-  fi
-}
-
-ask_assume_ssl() {
-  echo "* Let's Encrypt is not going to be automatically configured by this script (user opted out)."
-  echo "* You can 'assume' Let's Encrypt, which means the script will download a nginx configuration that is configured to use a Let's Encrypt certificate but the script won't obtain the certificate for you."
-  echo "* If you assume SSL and do not obtain the certificate, your installation will not work."
-  echo -n "* Assume SSL or not? (y/N): "
-  read -r ASSUME_SSL_INPUT
-
-  [[ "$ASSUME_SSL_INPUT" =~ [Yy] ]] && ASSUME_SSL=true
-  true
-}
-
-check_FQDN_SSL() {
-  if [[ $(invalid_ip "$FQDN") == 1 && $FQDN != 'localhost' ]]; then
-    SSL_AVAILABLE=true
-  else
-    print_warning "* Let's Encrypt will not be available for IP addresses."
-    echo "* To use Let's Encrypt, you must use a valid domain name."
-  fi
-}
-
-ask_firewall() {
-  case "$OS" in
-  ubuntu | debian)
-    echo -e -n "* Do you want to automatically configure UFW (firewall)? (y/N): "
-    read -r CONFIRM_UFW
-
-    if [[ "$CONFIRM_UFW" =~ [Yy] ]]; then
-      CONFIGURE_UFW=true
-      CONFIGURE_FIREWALL=true
-    fi
-    ;;
-  centos)
-    echo -e -n "* Do you want to automatically configure firewall-cmd (firewall)? (y/N): "
-    read -r CONFIRM_FIREWALL_CMD
-
-    if [[ "$CONFIRM_FIREWALL_CMD" =~ [Yy] ]]; then
-      CONFIGURE_FIREWALL_CMD=true
-      CONFIGURE_FIREWALL=true
-    fi
-    ;;
-  esac
-}
+#
+# required_input() {
+#   local __resultvar=$1
+#   local result=''
+#
+#   while [ -z "$result" ]; do
+#     echo -n "* ${2}"
+#     read -r result
+#
+#     if [ -z "${3}" ]; then
+#       [ -z "$result" ] && result="${4}"
+#     else
+#       [ -z "$result" ] && print_error "${3}"
+#     fi
+#   done
+#
+#   eval "$__resultvar="'$result'""
+# }
+#
+# email_input() {
+#   local __resultvar=$1
+#   local result=''
+#
+#   while ! valid_email "$result"; do
+#     echo -n "* ${2}"
+#     read -r result
+#
+#     valid_email "$result" || print_error "${3}"
+#   done
+#
+#   eval "$__resultvar="'$result'""
+# }
+#
+# password_input() {
+#   local __resultvar=$1
+#   local result=''
+#   local default="$4"
+#
+#   while [ -z "$result" ]; do
+#     echo -n "* ${2}"
+#
+#     # modified from https://stackoverflow.com/a/22940001
+#     while IFS= read -r -s -n1 char; do
+#       [[ -z $char ]] && {
+#         printf '\n'
+#         break
+#       }                               # ENTER pressed; output \n and break.
+#       if [[ $char == $'\x7f' ]]; then # backspace was pressed
+#         # Only if variable is not empty
+#         if [ -n "$result" ]; then
+#           # Remove last char from output variable.
+#           [[ -n $result ]] && result=${result%?}
+#           # Erase '*' to the left.
+#           printf '\b \b'
+#         fi
+#       else
+#         # Add typed char to output variable.
+#         result+=$char
+#         # Print '*' in its stead.
+#         printf '*'
+#       fi
+#     done
+#     [ -z "$result" ] && [ -n "$default" ] && result="$default"
+#     [ -z "$result" ] && print_error "${3}"
+#   done
+#
+#   eval "$__resultvar="'$result'""
+# }
+#
+# ask_letsencrypt() {
+#   if [ "$CONFIGURE_UFW" == false ] && [ "$CONFIGURE_FIREWALL_CMD" == false ]; then
+#     print_warning "Let's Encrypt requires port 80/443 to be opened! You have opted out of the automatic firewall configuration; use this at your own risk (if port 80/443 is closed, the script will fail)!"
+#   fi
+#
+#   echo -e -n "* Do you want to automatically configure HTTPS using Let's Encrypt? (y/N): "
+#   read -r CONFIRM_SSL
+#
+#   if [[ "$CONFIRM_SSL" =~ [Yy] ]]; then
+#     CONFIGURE_LETSENCRYPT=true
+#     ASSUME_SSL=false
+#   fi
+# }
+#
+# ask_assume_ssl() {
+#   echo "* Let's Encrypt is not going to be automatically configured by this script (user opted out)."
+#   echo "* You can 'assume' Let's Encrypt, which means the script will download a nginx configuration that is configured to use a Let's Encrypt certificate but the script won't obtain the certificate for you."
+#   echo "* If you assume SSL and do not obtain the certificate, your installation will not work."
+#   echo -n "* Assume SSL or not? (y/N): "
+#   read -r ASSUME_SSL_INPUT
+#
+#   [[ "$ASSUME_SSL_INPUT" =~ [Yy] ]] && ASSUME_SSL=true
+#   true
+# }
+#
+# check_FQDN_SSL() {
+#   if [[ $(invalid_ip "$FQDN") == 1 && $FQDN != 'localhost' ]]; then
+#     SSL_AVAILABLE=true
+#   else
+#     print_warning "* Let's Encrypt will not be available for IP addresses."
+#     echo "* To use Let's Encrypt, you must use a valid domain name."
+#   fi
+# }
+#
+# ask_firewall() {
+#   case "$OS" in
+#   ubuntu | debian)
+#     echo -e -n "* Do you want to automatically configure UFW (firewall)? (y/N): "
+#     read -r CONFIRM_UFW
+#
+#     if [[ "$CONFIRM_UFW" =~ [Yy] ]]; then
+#       CONFIGURE_UFW=true
+#       CONFIGURE_FIREWALL=true
+#     fi
+#     ;;
+#   centos)
+#     echo -e -n "* Do you want to automatically configure firewall-cmd (firewall)? (y/N): "
+#     read -r CONFIRM_FIREWALL_CMD
+#
+#     if [[ "$CONFIRM_FIREWALL_CMD" =~ [Yy] ]]; then
+#       CONFIGURE_FIREWALL_CMD=true
+#       CONFIGURE_FIREWALL=true
+#     fi
+#     ;;
+#   esac
+# }
 
 ####### OS check funtions #######
 

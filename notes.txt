@@ -1,0 +1,13 @@
+#Environment Variables
+##Install Panel Variables
+FQDN
+First name
+Last name
+Email
+Username
+Password
+
+##Install Wings Variables
+FQDN
+Email
+Password

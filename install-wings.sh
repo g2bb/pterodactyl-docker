@@ -60,25 +60,25 @@ GITHUB_BASE_URL="https://raw.githubusercontent.com/vilhelmprytz/pterodactyl-inst
 COLOR_RED='\033[0;31m'
 COLOR_NC='\033[0m'
 
-INSTALL_MARIADB=false
+INSTALL_MARIADB=true
 
 # firewall
-CONFIGURE_FIREWALL=false
-CONFIGURE_UFW=false
-CONFIGURE_FIREWALL_CMD=false
+CONFIGURE_FIREWALL=true
+CONFIGURE_UFW=true
+CONFIGURE_FIREWALL_CMD=true
 
 # SSL (Let's Encrypt)
-CONFIGURE_LETSENCRYPT=false
-FQDN=""
-EMAIL=""
+CONFIGURE_LETSENCRYPT=true
+FQDN=$1
+EMAIL=$2
 
 # Database host
-CONFIGURE_DBHOST=false
+CONFIGURE_DBHOST=true
 CONFIGURE_DBEXTERNAL=false
 CONFIGURE_DBEXTERNAL_HOST="%"
 CONFIGURE_DB_FIREWALL=false
 MYSQL_DBHOST_USER="pterodactyluser"
-MYSQL_DBHOST_PASSWORD="password"
+MYSQL_DBHOST_PASSWORD=$3
 
 # regex for email input
 regex="^(([A-Za-z0-9]+((\.|\-|\_|\+)?[A-Za-z0-9]?)*[A-Za-z0-9]+)|[A-Za-z0-9]+)@(([A-Za-z0-9]+)+((\.|\-|\_)?([A-Za-z0-9]+)+)*)+\.([A-Za-z]{2,})+$"
@@ -101,60 +101,60 @@ WINGS_VERSION="$(get_latest_release "pterodactyl/wings")"
 valid_email() {
   [[ $1 =~ ${regex} ]]
 }
-
-required_input() {
-  local __resultvar=$1
-  local result=''
-
-  while [ -z "$result" ]; do
-    echo -n "* ${2}"
-    read -r result
-
-    if [ -z "${3}" ]; then
-      [ -z "$result" ] && result="${4}"
-    else
-      [ -z "$result" ] && print_error "${3}"
-    fi
-  done
-
-  eval "$__resultvar="'$result'""
-}
-
-password_input() {
-  local __resultvar=$1
-  local result=''
-  local default="$4"
-
-  while [ -z "$result" ]; do
-    echo -n "* ${2}"
-
-    # modified from https://stackoverflow.com/a/22940001
-    while IFS= read -r -s -n1 char; do
-      [[ -z $char ]] && {
-        printf '\n'
-        break
-      }                               # ENTER pressed; output \n and break.
-      if [[ $char == $'\x7f' ]]; then # backspace was pressed
-        # Only if variable is not empty
-        if [ -n "$result" ]; then
-          # Remove last char from output variable.
-          [[ -n $result ]] && result=${result%?}
-          # Erase '*' to the left.
-          printf '\b \b'
-        fi
-      else
-        # Add typed char to output variable.
-        result+=$char
-        # Print '*' in its stead.
-        printf '*'
-      fi
-    done
-    [ -z "$result" ] && [ -n "$default" ] && result="$default"
-    [ -z "$result" ] && print_error "${3}"
-  done
-
-  eval "$__resultvar="'$result'""
-}
+#
+# required_input() {
+#   local __resultvar=$1
+#   local result=''
+#
+#   while [ -z "$result" ]; do
+#     echo -n "* ${2}"
+#     read -r result
+#
+#     if [ -z "${3}" ]; then
+#       [ -z "$result" ] && result="${4}"
+#     else
+#       [ -z "$result" ] && print_error "${3}"
+#     fi
+#   done
+#
+#   eval "$__resultvar="'$result'""
+# }
+#
+# password_input() {
+#   local __resultvar=$1
+#   local result=''
+#   local default="$4"
+#
+#   while [ -z "$result" ]; do
+#     echo -n "* ${2}"
+#
+#     # modified from https://stackoverflow.com/a/22940001
+#     while IFS= read -r -s -n1 char; do
+#       [[ -z $char ]] && {
+#         printf '\n'
+#         break
+#       }                               # ENTER pressed; output \n and break.
+#       if [[ $char == $'\x7f' ]]; then # backspace was pressed
+#         # Only if variable is not empty
+#         if [ -n "$result" ]; then
+#           # Remove last char from output variable.
+#           [[ -n $result ]] && result=${result%?}
+#           # Erase '*' to the left.
+#           printf '\b \b'
+#         fi
+#       else
+#         # Add typed char to output variable.
+#         result+=$char
+#         # Print '*' in its stead.
+#         printf '*'
+#       fi
+#     done
+#     [ -z "$result" ] && [ -n "$default" ] && result="$default"
+#     [ -z "$result" ] && print_error "${3}"
+#   done
+#
+#   eval "$__resultvar="'$result'""
+# }
 
 #################################
 ####### Visual functions ########
@@ -522,7 +522,7 @@ configure_mysql() {
       sed -ne 's/^#bind-address=0.0.0.0$/bind-address=0.0.0.0/' /etc/my.cnf.d/mariadb-server.cnf
       ;;
     esac
-  
+
     systemctl restart mysqld
   fi
 
