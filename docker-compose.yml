@@ -1,0 +1,13 @@
+version: "3"
+services:
+  test:
+    image: 93aa89d0126e
+    hostname: testpd
+    container_name: testpd
+    environment:
+      FQDN: "test.example.com"
+      firstname: "John"
+      lastname: "Doe"
+      email: "noreply@example.com"
+      username: "test"
+      password: "testpwd"
